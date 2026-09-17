@@ -3,13 +3,13 @@
   "version": "0.0.1",
   "description": "Render Knap templates embedded in Markdown files without disturbing surrounding content.",
   "author": "Lucas Melin",
-  "type": "module",
   "bin": {
     "spall": "./dist/cli.js"
   },
   "files": [
     "dist"
   ],
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "test": "vitest",

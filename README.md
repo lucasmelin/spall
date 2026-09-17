@@ -59,7 +59,7 @@ nix build .
 ./result/bin/spall <args>
 ```
 
-Install spall into your Nix profile so it's available on your `PATH`:
+Install Spall into your Nix profile so it's available on your `PATH`:
 
 ```bash
 nix profile add .
