@@ -1,0 +1,44 @@
+{
+  "name": "spall",
+  "version": "0.0.1",
+  "description": "Render Knap templates embedded in Markdown files without disturbing surrounding content.",
+  "author": "Lucas Melin",
+  "type": "module",
+  "bin": {
+    "spall": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage.enabled true",
+    "type-check": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check"
+  },
+  "dependencies": {
+    "knap": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.0",
+    "@vitest/coverage-istanbul": "^4.1.11",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.3.4",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.3.4"
+}
