@@ -1,5 +1,5 @@
 {
-  "name": "spall",
+  "name": "@lucasmelin/spall",
   "version": "0.0.1",
   "description": "Render Knap templates embedded in Markdown files without disturbing surrounding content.",
   "license": "MIT",

@@ -7,7 +7,7 @@ Spall is inspired by [Cog](https://github.com/nedbat/cog), but uses Knap's Markd
 ## Install
 
 ```bash
-npm install -g spall
+npm install -g @lucasmelin/spall
 ```
 
 ## Usage
