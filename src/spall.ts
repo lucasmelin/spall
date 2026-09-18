@@ -6,7 +6,7 @@ import { createEngine, standardFilters, type TemplateVariables } from "knap";
  * the raw Knap source stays invisible in any Markdown viewer or renderer
  * before spall has processed the file.
  */
-export const BEGIN_MARKER = "<!--[[[spall:begin";
+export const BEGIN_MARKER = "<!--\n[[[spall:begin";
 /**
  * Marks the end of the template body and the start of its previously
  * generated output. Closes the HTML comment opened by {@link BEGIN_MARKER}.

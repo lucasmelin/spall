@@ -5,7 +5,8 @@ describe("findBlocks", () => {
   it("finds a single managed block", () => {
     const source = Buffer.from(
       `before
-<!--[[[spall:begin
+<!--
+[[[spall:begin
 Hello {{ name }}
 spall:generate]]]-->
 <!--[[[spall:end]]]-->
@@ -24,12 +25,14 @@ Hello {{ name }}
   it("finds multiple managed blocks", () => {
     const source = Buffer.from(
       `a
-<!--[[[spall:begin
+<!--
+[[[spall:begin
 {{ one }}
 spall:generate]]]-->
 b
 <!--[[[spall:end]]]-->
-<!--[[[spall:begin
+<!--
+[[[spall:begin
 {{ two }}
 spall:generate]]]-->
 <!--[[[spall:end]]]-->
@@ -43,7 +46,8 @@ c`,
     expect(() =>
       findBlocks(
         Buffer.from(`
-<!--[[[spall:begin
+<!--
+[[[spall:begin
 {{ value }}`),
       ),
     ).toThrow(/no matching/);
@@ -55,7 +59,8 @@ describe("renderBlocks", () => {
     const suffix = "AFTER\n{{ this is intentionally not rendered }}\n☃\r\n";
     const source = Buffer.from(
       `before
-<!--[[[spall:begin
+<!--
+[[[spall:begin
 Hello {{ name }}
 spall:generate]]]-->
 <!--[[[spall:end]]]-->
@@ -68,7 +73,8 @@ ${suffix}`,
 
     expect(rendered.toString("utf8")).toEqual(
       `before
-<!--[[[spall:begin
+<!--
+[[[spall:begin
 Hello {{ name }}
 spall:generate]]]-->
 Hello Ada
@@ -85,9 +91,9 @@ ${suffix}`,
 
   it("renders multiple blocks independently", async () => {
     const source = Buffer.from(
-      "<!--[[[spall:begin\n{{ a }}\nspall:generate]]]--><!--[[[spall:end]]]-->\n" +
+      "<!--\n[[[spall:begin\n{{ a }}\nspall:generate]]]--><!--[[[spall:end]]]-->\n" +
         "middle\n" +
-        "<!--[[[spall:begin\n{{ b }}\nspall:generate]]]--><!--[[[spall:end]]]-->\n",
+        "<!--\n[[[spall:begin\n{{ b }}\nspall:generate]]]--><!--[[[spall:end]]]-->\n",
     );
 
     const rendered = await renderBlocks(source, {
@@ -95,15 +101,15 @@ ${suffix}`,
     });
 
     expect(rendered.toString()).toEqual(
-      "<!--[[[spall:begin\n{{ a }}\nspall:generate]]]-->\none\n<!--[[[spall:end]]]-->\n" +
+      "<!--\n[[[spall:begin\n{{ a }}\nspall:generate]]]-->\none\n<!--[[[spall:end]]]-->\n" +
         "middle\n" +
-        "<!--[[[spall:begin\n{{ b }}\nspall:generate]]]-->\ntwo\n<!--[[[spall:end]]]-->\n",
+        "<!--\n[[[spall:begin\n{{ b }}\nspall:generate]]]-->\ntwo\n<!--[[[spall:end]]]-->\n",
     );
   });
 
   it("does not render spall-looking content after END", async () => {
     const source = Buffer.from(
-      "<!--[[[spall:begin\n{{ value }}\nspall:generate]]]--><!--[[[spall:end]]]-->\n" +
+      "<!--\n[[[spall:begin\n{{ value }}\nspall:generate]]]--><!--[[[spall:end]]]-->\n" +
         "{{ value }}\n",
     );
 
@@ -116,7 +122,7 @@ ${suffix}`,
 
   it("preserves an unchanged file byte-for-byte", async () => {
     const source = Buffer.from(
-      "\ufeffprefix\r\n<!--[[[spall:begin\nstatic\r\nspall:generate]]]-->\nstatic\r\n<!--[[[spall:end]]]-->\r\nsuffix\n",
+      "\ufeffprefix\r\n<!--\n[[[spall:begin\nstatic\r\nspall:generate]]]-->\nstatic\r\n<!--[[[spall:end]]]-->\r\nsuffix\n",
     );
 
     const rendered = await renderBlocks(source, { variables: {} });
