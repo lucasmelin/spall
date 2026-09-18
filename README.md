@@ -21,24 +21,26 @@ npx spall render file.md --data data.json
 All lines between `[[[spall:begin` and `spall:generate]]]` are part of the `knap` template.
 The lines between `spall:generate]]]` and `[[[spall:end]]]` are the output from the `knap` template.
 
-For example, if you run this files through `spall`:
+For example, if you run this file through `spall`:
 
 ```md
-%[[[spall:begin%
-Hello {{ name }}
-%spall:generate]]]%
-%[[[spall:end]]]%
+<!--[[[spall:begin
+Hello from {{ name }}!
+spall:generate]]]-->
+<!--[[[spall:end]]]-->
 ```
 
-with `npx spall render file.md --set name=Ada`, it would generate:
+with `npx spall render file.md --set name=Lucas`, it would generate:
 
 ```md
-%[[[spall:begin%
-Hello {{ name }}
-%spall:generate]]]%
-Hello Ada
-%[[[spall:end]]]%
+<!--[[[spall:begin
+Hello from {{ name }}!
+spall:generate]]]-->
+Hello from Lucas!
+<!--[[[spall:end]]]-->
 ```
+
+Line comments and [Obsidian comments](https://obsidian.md/help/syntax#Comments) (`%%`) are supported as well.
 
 ## Development
 
