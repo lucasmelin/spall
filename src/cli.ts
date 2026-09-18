@@ -13,7 +13,7 @@ interface Arguments {
   dataFile?: string;
   /** Raw `key=value` strings from the `--set` flags. */
   sets: string[];
-   /** Exit non-zero if rendering would change the file, without writing. */
+  /** Exit non-zero if rendering would change the file, without writing. */
   check: boolean;
   /** Render and print the result without modifying the file. */
   dryRun: boolean;
@@ -24,7 +24,6 @@ interface Arguments {
 }
 
 const VERSION = "0.0.1";
-
 
 /**
  * Build the CLI's `--help` text.
@@ -41,17 +40,19 @@ Usage:
   spall <file> --dry-run
 
 Options:
-  -d, --data <file>     JSON object containing template variables
-      --set <k=v>       Set/override a top-level template variable; repeatable
+  -d, --data <file>      JSON object containing template variables
+      --set <k=v>        Set/override a top-level template variable; repeatable
       --check            Exit 1 if rendering would change the file
       --dry-run          Render and print the result without modifying the file
   -h, --help             Show this help
   -v, --version          Show the version
 
 Managed blocks:
-  %% spall:begin %%
-  ... Knap template ...
-  %% spall:end %%
+  <!--[[[spall:begin
+  ... Knap template (preserved every run, hidden in an HTML comment) ...
+  spall:generate]]]-->
+  ... generated output (replaced every run, rendered normally) ...
+  <!--[[[spall:end]]]-->
 
 Everything outside managed blocks is preserved verbatim.
 `;
@@ -63,7 +64,6 @@ function parseArgs(argv: readonly string[]): Arguments {
   const sets: string[] = [];
   let check = false;
   let dryRun = false;
-  let stdout = false;
   let help = false;
   let version = false;
 
@@ -236,7 +236,9 @@ if (isMainModule()) {
   try {
     process.exitCode = await main();
   } catch (error) {
-    process.stderr.write(`spall error: ${error instanceof Error ? error.message : String(error)}\n`);
+    process.stderr.write(
+      `spall error: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
     process.exitCode = 1;
   }
 }
