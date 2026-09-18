@@ -4,6 +4,20 @@ Spall is a small CLI that renders [Knap](https://github.com/obsidianmd/knap) tem
 
 Spall is inspired by [Cog](https://github.com/nedbat/cog), but uses Knap's Markdown-native template language and Obsidian comments.
 
+## Install
+
+```bash
+npm install spall
+```
+
+## Usage
+
+Render a Markdown file containing a template:
+
+```bash
+npx spall render file.md --data data.json
+```
+
 ## Development
 
 ### Prerequisites

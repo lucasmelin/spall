@@ -2,12 +2,19 @@
   "name": "spall",
   "version": "0.0.1",
   "description": "Render Knap templates embedded in Markdown files without disturbing surrounding content.",
+  "license": "MIT",
   "author": "Lucas Melin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lucasmelin/spall"
+  },
   "bin": {
     "spall": "./dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "type": "module",
   "scripts": {
