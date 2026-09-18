@@ -52,7 +52,7 @@ Managed blocks:
 Everything outside managed blocks is preserved verbatim.
 
 To check whether a file is up-to-date without writing to it, use
-\`spall validate\` instead.
+\`spall check\` instead.
 `;
 }
 

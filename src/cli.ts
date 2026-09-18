@@ -2,7 +2,7 @@
 import { pathToFileURL } from "url";
 import type { Command } from "./command.js";
 import { renderCommand } from "./render.js";
-import { validateCommand } from "./validate.js";
+import { checkCommand } from "./check.js";
 
 /** The version of the spall CLI. */
 const VERSION = "0.0.1";
@@ -10,7 +10,7 @@ const VERSION = "0.0.1";
 /**
  * All subcommands the CLI knows about.
  */
-const commands: readonly Command[] = [renderCommand, validateCommand];
+const commands: readonly Command[] = [renderCommand, checkCommand];
 
 /**
  * Look up a registered subcommand by name.

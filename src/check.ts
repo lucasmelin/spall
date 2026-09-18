@@ -4,10 +4,10 @@ import { loadVariables } from "./variables.js";
 import type { Command } from "./command.js";
 
 /**
- * Parsed arguments for the `validate` subcommand.
+ * Parsed arguments for the `check` subcommand.
  */
-export interface ValidateArguments {
-  /** Path to the Markdown file to validate. */
+export interface CheckArguments {
+  /** Path to the Markdown file to check. */
   templateFile: string;
   /** Path to a JSON file of template variables, if `--data`/`-d` was provided. */
   dataFile?: string;
@@ -18,20 +18,19 @@ export interface ValidateArguments {
 }
 
 /**
- * Build the `validate` subcommand's `--help` text.
+ * Build the `check` subcommand's `--help` text.
  *
- * @returns The full usage/help message for `validate`.
+ * @returns The full usage/help message for `check`.
  */
-export function validateUsage(): string {
+export function checkUsage(): string {
   return `
 Usage:
-  spall validate <file>
-  spall validate <file> --data data.json
-  spall validate <file> --set key=value
+  spall check <file>
+  spall check <file> --data data.json
+  spall check <file> --set key=value
 
 Render <file> and exit 1 if the result would differ from what's on disk,
-without writing anything. Useful in CI to catch a file whose generated
-output is out of date with its template.
+without writing anything.
 
 Options:
   -d, --data <file>      JSON object containing template variables
@@ -41,15 +40,15 @@ Options:
 }
 
 /**
- * Parse the arguments to the `validate` subcommand.
+ * Parse the arguments to the `check` subcommand.
  *
- * @param argv - Arguments following `validate` on the command line.
+ * @param argv - Arguments following `check` on the command line.
  * @returns The parsed arguments.
  * @throws {Error} If an option requiring a value is missing one, an unknown
  *   option is given, more than one file is given, or no file and no `--help`
  *   is given.
  */
-export function parseValidateArgs(argv: readonly string[]): ValidateArguments {
+export function parseCheckArgs(argv: readonly string[]): CheckArguments {
   let file: string | undefined;
   let data: string | undefined;
   const sets: string[] = [];
@@ -93,20 +92,20 @@ export function parseValidateArgs(argv: readonly string[]): ValidateArguments {
 }
 
 /**
- * Run the `validate` subcommand.
+ * Run the `check` subcommand.
  *
  * Parses its arguments, renders the target file's managed blocks, and
  * reports whether the result would differ from what's currently on disk,
  * without writing anything back.
  *
- * @param argv - Arguments following `validate` on the command line.
+ * @param argv - Arguments following `check` on the command line.
  * @returns The process exit code: `1` if rendering would change the file, `0` otherwise.
  */
-export async function runValidate(argv: readonly string[]): Promise<number> {
-  const args = parseValidateArgs(argv);
+export async function runCheck(argv: readonly string[]): Promise<number> {
+  const args = parseCheckArgs(argv);
 
   if (args.help) {
-    process.stdout.write(validateUsage());
+    process.stdout.write(checkUsage());
     return 0;
   }
 
@@ -122,10 +121,10 @@ export async function runValidate(argv: readonly string[]): Promise<number> {
   return 0;
 }
 
-/** The `validate` subcommand, registered with the CLI dispatcher in `cli.ts`. */
-export const validateCommand: Command = {
-  name: "validate",
+/** The `check` subcommand, registered with the CLI dispatcher in `cli.ts`. */
+export const checkCommand: Command = {
+  name: "check",
   summary: "Check whether a file's generated output is up to date",
-  usage: validateUsage,
-  run: runValidate,
+  usage: checkUsage,
+  run: runCheck,
 };
