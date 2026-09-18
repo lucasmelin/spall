@@ -124,7 +124,7 @@ export async function runCheck(argv: readonly string[]): Promise<number> {
 /** The `check` subcommand, registered with the CLI dispatcher in `cli.ts`. */
 export const checkCommand: Command = {
   name: "check",
-  summary: "Check whether a file's generated output is up to date",
+  summary: "Check whether a file's generated output is up-to-date",
   usage: checkUsage,
   run: runCheck,
 };

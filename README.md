@@ -2,12 +2,12 @@
 
 Spall is a small CLI that renders [Knap](https://github.com/obsidianmd/knap) templates embedded directly in Markdown files.
 
-Spall is inspired by [Cog](https://github.com/nedbat/cog), but uses Knap's Markdown-native template language and Obsidian comments.
+Spall is inspired by [Cog](https://github.com/nedbat/cog), but uses Knap's Markdown-native template language.
 
 ## Install
 
 ```bash
-npm install spall
+npm install -g spall
 ```
 
 ## Usage
@@ -16,6 +16,28 @@ Render a Markdown file containing a template:
 
 ```bash
 npx spall render file.md --data data.json
+```
+
+All lines between `[[[spall:begin` and `spall:generate]]]` are part of the `knap` template.
+The lines between `spall:generate]]]` and `[[[spall:end]]]` are the output from the `knap` template.
+
+For example, if you run this files through `spall`:
+
+```md
+%[[[spall:begin%
+Hello {{ name }}
+%spall:generate]]]%
+%[[[spall:end]]]%
+```
+
+with `npx spall render file.md --set name=Ada`, it would generate:
+
+```md
+%[[[spall:begin%
+Hello {{ name }}
+%spall:generate]]]%
+Hello Ada
+%[[[spall:end]]]%
 ```
 
 ## Development

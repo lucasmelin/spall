@@ -66,7 +66,7 @@ async function main(): Promise<number> {
   }
 
   if (first === "-v" || first === "--version") {
-    process.stdout.write(`${VERSION}\n`);
+    process.stdout.write(`spall ${VERSION}\n`);
     return 0;
   }
 

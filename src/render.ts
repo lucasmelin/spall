@@ -42,12 +42,11 @@ Options:
   -h, --help             Show this help text
 
 Managed blocks:
-  <!--
-  [[[spall:begin]]]
+  [[[spall:begin
   ... Knap template (preserved every run, hidden in an HTML comment) ...
-  spall:generate]]]-->
+  spall:generate]]]
   ... generated output (replaced every run, rendered normally) ...
-  <!--[[[spall:end]]]-->
+  [[[spall:end]]]
 
 Everything outside managed blocks is preserved verbatim.
 
