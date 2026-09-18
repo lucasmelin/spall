@@ -50,4 +50,4 @@ jobs:
         with:
           subject-path: dist/*
 
-      - run: pnpm stage publish --provenance --access public
+      - run: pnpm stage publish --provenance --access public --no-git-checks
