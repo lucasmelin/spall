@@ -5,7 +5,7 @@ import { renderCommand } from "./render.js";
 import { checkCommand } from "./check.js";
 
 /** The version of the spall CLI. */
-const VERSION = "0.0.1";
+const VERSION = "0.0.2";
 
 /**
  * All subcommands the CLI knows about.

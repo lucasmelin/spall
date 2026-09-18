@@ -12,7 +12,7 @@
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
 
         pname = "spall";
-        version = "0.0.1";
+        version = "0.0.2";
         src = builtins.path {
           path = ./.;
           name = "spall-source";

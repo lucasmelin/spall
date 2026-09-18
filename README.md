@@ -15,7 +15,7 @@ npm install -g @lucasmelin/spall
 Render a Markdown file containing a template:
 
 ```bash
-npx spall render file.md --data data.json
+npx @lucasmelin/spall render file.md --data data.json
 ```
 
 All lines between `[[[spall:begin` and `spall:generate]]]` are part of the `knap` template.
@@ -30,12 +30,13 @@ spall:generate]]]-->
 <!--[[[spall:end]]]-->
 ```
 
-with `npx spall render file.md --set name=Lucas`, it would generate:
+with `npx @lucasmelin/spall render file.md --set name=Lucas`, it would generate:
 
 ```md
 <!--[[[spall:begin
 Hello from {{ name }}!
 spall:generate]]]-->
+
 Hello from Lucas!
 <!--[[[spall:end]]]-->
 ```

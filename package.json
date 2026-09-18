@@ -1,6 +1,6 @@
 {
   "name": "@lucasmelin/spall",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Render Knap templates embedded in Markdown files without disturbing surrounding content.",
   "license": "MIT",
   "author": "Lucas Melin",
@@ -39,13 +39,6 @@
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
     "vitest": "^4.1.0"
-  },
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "12.3.4",
-      "onFail": "download"
-    }
   },
   "packageManager": "pnpm@12.3.4"
 }
