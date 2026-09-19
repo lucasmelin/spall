@@ -1,2 +1,12 @@
 allowBuilds:
   esbuild: false
+
+minimumReleaseAgeExclude:
+  - "@types/node@26.6.2"
+
+packages:
+  - .
+  - website
+
+catalog:
+  knap: ^0.6.0

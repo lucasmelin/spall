@@ -17,6 +17,12 @@
     "LICENSE"
   ],
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/spall.d.ts",
+      "import": "./dist/spall.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest",
@@ -25,10 +31,11 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check"
+    "fmt:check": "oxfmt --check",
+    "website:dev": "pnpm --filter ./website dev"
   },
   "dependencies": {
-    "knap": "^0.6.0"
+    "knap": "catalog:"
   },
   "devDependencies": {
     "@types/node": "^26.5.0",
