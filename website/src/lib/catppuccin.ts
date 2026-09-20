@@ -37,11 +37,18 @@ const alpha = (hex: string, a: number) => {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 };
 
+const primary = "var(--color-primary)";
+const secondary = "var(--color-secondary)";
+
+/** Mix two colors together. This works with variables, unlike `alpha`. */
+const mix = (colour: string, percent: number) =>
+  `color-mix(in srgb, ${colour} ${percent}%, transparent)`;
+
 /**
- * Spall's two kinds of content get two colours so users tell them apart.
- * Mauve is the template users write, and Teal is the output Spall generates.
+ * Spall's two kinds of content get two colours so you can always tell them apart:
+ * primary is everything you write (the markers and the template), secondary is the output spall generates.
  */
-export const regionColors = { template: mocha.mauve, generated: mocha.teal } as const;
+export const regionColors = { template: primary, generated: secondary } as const;
 
 type Style = Record<string, string>;
 const knapTokenRules = (tokens: Record<string, Style>) =>
@@ -90,30 +97,20 @@ export const catppuccinTheme = EditorView.theme(
 
     // Spall regions
     ".cm-spall-template": {
-      backgroundColor: alpha(regionColors.template, 0.075),
-      boxShadow: `inset 2px 0 0 ${alpha(regionColors.template, 0.5)}`,
+      backgroundColor: mix(regionColors.template, 7.5),
+      boxShadow: `inset 2px 0 0 ${mix(regionColors.template, 50)}`,
     },
     ".cm-spall-output": {
-      backgroundColor: alpha(regionColors.generated, 0.065),
-      boxShadow: `inset 2px 0 0 ${alpha(regionColors.generated, 0.5)}`,
+      backgroundColor: mix(regionColors.generated, 6.5),
+      boxShadow: `inset 2px 0 0 ${mix(regionColors.generated, 50)}`,
     },
-    ".cm-spall-begin, .cm-spall-generate": {
-      backgroundColor: alpha(regionColors.template, 0.14),
+    ".cm-spall-begin, .cm-spall-generate, .cm-spall-end": {
+      backgroundColor: mix(regionColors.template, 14),
       boxShadow: `inset 2px 0 0 ${regionColors.template}`,
       color: mocha.overlay1,
     },
-    ".cm-spall-end": {
-      backgroundColor: alpha(regionColors.generated, 0.12),
-      boxShadow: `inset 2px 0 0 ${regionColors.generated}`,
-      color: mocha.overlay1,
-    },
-    ".cm-spall-begin .cm-spall-marker, .cm-spall-begin .cm-spall-marker span, .cm-spall-generate .cm-spall-marker, .cm-spall-generate .cm-spall-marker span":
+    ".cm-spall-begin .cm-spall-marker, .cm-spall-begin .cm-spall-marker span, .cm-spall-generate .cm-spall-marker, .cm-spall-generate .cm-spall-marker span, .cm-spall-end .cm-spall-marker, .cm-spall-end .cm-spall-marker span":
       { color: regionColors.template, fontStyle: "normal", fontWeight: "600" },
-    ".cm-spall-end .cm-spall-marker, .cm-spall-end .cm-spall-marker span": {
-      color: regionColors.generated,
-      fontStyle: "normal",
-      fontWeight: "600",
-    },
     ".cm-spall-prefix": { color: mocha.overlay0 },
 
     // Knap tokens inside templates. The Markdown highlighter can wrap these tokens (as a comment,
@@ -121,9 +118,9 @@ export const catppuccinTheme = EditorView.theme(
     ...knapTokenRules({
       text: { color: mocha.text, fontStyle: "normal" },
       punctuation: { color: mocha.overlay2, fontStyle: "normal" },
-      keyword: { color: mocha.mauve, fontStyle: "normal", fontWeight: "500" },
+      keyword: { color: secondary, fontStyle: "normal", fontWeight: "500" },
       variable: { color: mocha.blue, fontStyle: "normal" },
-      "variable-2": { color: mocha.teal, fontStyle: "normal" },
+      "variable-2": { color: primary, fontStyle: "normal" },
       operator: { color: mocha.sky, fontStyle: "normal" },
       string: { color: mocha.green, fontStyle: "normal" },
       number: { color: mocha.peach, fontStyle: "normal" },
@@ -169,7 +166,7 @@ export const catppuccinHighlight = syntaxHighlighting(
     { tag: t.propertyName, color: mocha.blue },
     { tag: t.string, color: mocha.green },
     { tag: t.number, color: mocha.peach },
-    { tag: [t.bool, t.null, t.atom], color: mocha.mauve },
+    { tag: [t.bool, t.null, t.atom], color: secondary },
     { tag: [t.punctuation, t.separator, t.brace, t.squareBracket], color: mocha.overlay2 },
     { tag: t.invalid, color: mocha.red },
   ]),

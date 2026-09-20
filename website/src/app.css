@@ -36,12 +36,19 @@
   --color-ctp-base: #1e1e2e;
   --color-ctp-mantle: #181825;
   --color-ctp-crust: #11111b;
+  /* Spall itself, buttons, links, focus rings, templates and their markers, filter names. */
+  --color-primary: var(--color-ctp-teal);
+  --color-primary-deep: #179299;
+  --color-primary-hover: color-mix(in srgb, var(--color-primary) 65%, var(--color-primary-deep));
+  /* What Spall generates, generated output */
+  --color-secondary: var(--color-ctp-mauve);
 }
 
 @layer base {
   html {
     color-scheme: dark;
-    background: var(--color-ctp-crust);
+    /* Matches body, so a page taller than the window has no seam. */
+    background: var(--color-ctp-base);
   }
   body {
     background: var(--color-ctp-base);
@@ -51,14 +58,22 @@
     text-rendering: optimizeLegibility;
   }
   :focus-visible {
-    outline: 2px solid var(--color-ctp-mauve);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
   ::selection {
-    background: color-mix(in srgb, var(--color-ctp-mauve) 32%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 30%, transparent);
   }
   button {
     cursor: pointer;
+  }
+  /* Ligatures would turn `<!--` and `-->` into arrows, hiding what is really in the file. */
+  pre,
+  code {
+    font-variant-ligatures: none;
+    font-feature-settings:
+      "liga" 0,
+      "calt" 0;
   }
   button:disabled {
     cursor: not-allowed;
@@ -95,4 +110,93 @@
   .split {
     grid-template-columns: minmax(0, calc(var(--split) * 1%)) 0 minmax(0, 1fr);
   }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-ctp-crust transition-colors hover:bg-primary-hover;
+  }
+  .btn-outline {
+    @apply inline-flex h-11 items-center justify-center rounded-lg border border-ctp-surface1 px-5 text-sm font-semibold text-ctp-text transition-colors hover:border-ctp-surface2 hover:bg-ctp-surface0;
+  }
+}
+
+/*
+ * Code samples on the landing page. These use the same class names as the playground's editors
+ * (see catppuccin.ts), so a block looks identical in both places.
+ */
+.code-block .cm-spall-template {
+  background: color-mix(in srgb, var(--color-primary) 7.5%, transparent);
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+.code-block .cm-spall-output {
+  background: color-mix(in srgb, var(--color-secondary) 6.5%, transparent);
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--color-secondary) 50%, transparent);
+}
+.code-block .cm-spall-begin,
+.code-block .cm-spall-generate,
+.code-block .cm-spall-end {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-primary);
+  color: var(--color-ctp-overlay1);
+}
+.code-block .cm-spall-marker {
+  font-weight: 600;
+}
+.code-block .cm-spall-begin .cm-spall-marker,
+.code-block .cm-spall-generate .cm-spall-marker,
+.code-block .cm-spall-end .cm-spall-marker {
+  color: var(--color-primary);
+}
+.code-block .cm-spall-prefix {
+  color: var(--color-ctp-overlay0);
+}
+.code-block .cm-knap-text {
+  color: var(--color-ctp-text);
+}
+.code-block .cm-knap-punctuation {
+  color: var(--color-ctp-overlay2);
+}
+.code-block .cm-knap-keyword {
+  color: var(--color-secondary);
+  font-weight: 500;
+}
+.code-block .cm-knap-variable {
+  color: var(--color-ctp-blue);
+}
+.code-block .cm-knap-variable-2 {
+  color: var(--color-primary);
+}
+.code-block .cm-knap-operator {
+  color: var(--color-ctp-sky);
+}
+.code-block .cm-knap-string {
+  color: var(--color-ctp-green);
+}
+.code-block .cm-knap-number,
+.code-block .cm-knap-atom {
+  color: var(--color-ctp-peach);
+}
+.code-block .cm-knap-comment {
+  color: var(--color-ctp-overlay1);
+  font-style: italic;
+}
+.code-block .tok-heading {
+  color: var(--color-ctp-lavender);
+  font-weight: 600;
+}
+.code-block .tok-key {
+  color: var(--color-ctp-blue);
+}
+.code-block .tok-string {
+  color: var(--color-ctp-green);
+}
+.code-block .tok-number {
+  color: var(--color-ctp-peach);
+}
+.code-block .tok-atom {
+  color: var(--color-secondary);
+}
+.code-block .tok-punct {
+  color: var(--color-ctp-overlay2);
 }

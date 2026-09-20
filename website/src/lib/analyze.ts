@@ -19,7 +19,7 @@ export type Edit = { from: number; to: number; insert: string };
 
 /** Represents the full set of results from analyzing a document with Spall markers. */
 export type Analysis = {
-  /** How many spall blocks were found. */
+  /** How many Spall blocks were found. */
   blocks: number;
   /** The full rendered document, or null when it could not be produced. */
   output: string | null;
@@ -40,9 +40,10 @@ export type Analysis = {
 // The Spall CLI uses this same setup internally, so diagnostics should match what rendering reports.
 const engine = createEngine({ filters: standardFilters });
 
-/** Spall reports byte offsets, but editors use UTF-16 offsets.
+/**
+ * Spall reports byte offsets, but editors use UTF-16 offsets.
  *
- *  subarray() returns a Buffer at runtime.
+ * subarray() returns a Buffer at runtime.
  */
 const decoder = (buf: Buffer, byteOffset: number) =>
   (buf.subarray(0, byteOffset) as unknown as Buffer).toString("utf8").length;

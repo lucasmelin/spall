@@ -19,7 +19,7 @@ npx @lucasmelin/spall render file.md --data data.json
 ```
 
 All lines between `[[[spall:begin` and `spall:generate]]]` are part of the `knap` template.
-The lines between `spall:generate]]]` and `[[[spall:end]]]` are the output from the `knap` template.
+The lines between `spall:generate]]]` and `[[[spall:end]]]` are the _output_ from the `knap` template.
 
 For example, if you run this file through `spall`:
 
@@ -30,13 +30,12 @@ spall:generate]]]-->
 <!--[[[spall:end]]]-->
 ```
 
-with `npx @lucasmelin/spall render file.md --set name=Lucas`, it would generate:
+with `npx @lucasmelin/spall render file.md --set name=Lucas`, it outputs:
 
 ```md
 <!--[[[spall:begin
 Hello from {{ name }}!
 spall:generate]]]-->
-
 Hello from Lucas!
 <!--[[[spall:end]]]-->
 ```

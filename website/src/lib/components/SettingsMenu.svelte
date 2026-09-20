@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { tick } from 'svelte';
-	import Icon from './Icon.svelte';
+	import { tick } from "svelte";
+	import Icon from "./Icon.svelte";
 
 	let {
 		wrap = $bindable(true),
 		live = $bindable(true),
 		onshare,
 		onreset,
-		onclear
+		onclear,
 	}: {
 		wrap?: boolean;
 		live?: boolean;
@@ -20,7 +20,10 @@
 	let root: HTMLDivElement | undefined = $state();
 	let trigger: HTMLButtonElement | undefined = $state();
 
-	const items = () => Array.from(root?.querySelectorAll<HTMLElement>('[role^="menuitem"]') ?? []);
+	const items = () =>
+		Array.from(
+			root?.querySelectorAll<HTMLElement>('[role^="menuitem"]') ?? [],
+		);
 
 	async function toggle() {
 		open = !open;
@@ -43,21 +46,25 @@
 	function onkeydown(event: KeyboardEvent) {
 		const list = items();
 		const index = list.indexOf(document.activeElement as HTMLElement);
-		if (event.key === 'ArrowDown') list[(index + 1) % list.length]?.focus();
-		else if (event.key === 'ArrowUp') list[(index - 1 + list.length) % list.length]?.focus();
-		else if (event.key === 'Home') list[0]?.focus();
-		else if (event.key === 'End') list[list.length - 1]?.focus();
-		else if (event.key === 'Escape') return close(true);
-		else if (event.key === 'Tab') return close();
+		if (event.key === "ArrowDown") list[(index + 1) % list.length]?.focus();
+		else if (event.key === "ArrowUp")
+			list[(index - 1 + list.length) % list.length]?.focus();
+		else if (event.key === "Home") list[0]?.focus();
+		else if (event.key === "End") list[list.length - 1]?.focus();
+		else if (event.key === "Escape") return close(true);
+		else if (event.key === "Tab") return close();
 		else return;
 		event.preventDefault();
 	}
 
 	const item =
-		'flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-ctp-subtext1 outline-none hover:bg-ctp-surface0 hover:text-ctp-text focus-visible:bg-ctp-surface0 focus-visible:text-ctp-text focus-visible:outline-none';
+		"flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-ctp-subtext1 outline-none hover:bg-ctp-surface0 hover:text-ctp-text focus-visible:bg-ctp-surface0 focus-visible:text-ctp-text focus-visible:outline-none";
 </script>
 
-<svelte:window onpointerdown={(e) => open && root && !root.contains(e.target as Node) && close()} />
+<svelte:window
+	onpointerdown={(e) =>
+		open && root && !root.contains(e.target as Node) && close()}
+/>
 
 <div class="relative" bind:this={root}>
 	<button
@@ -81,19 +88,37 @@
 			class="absolute top-full left-0 z-40 mt-1.5 w-56 rounded-lg border border-ctp-surface1 bg-ctp-mantle p-1 shadow-xl shadow-black/40"
 			{onkeydown}
 		>
-			<button type="button" role="menuitem" class={item} onclick={() => run(onshare)}>
+			<button
+				type="button"
+				role="menuitem"
+				class={item}
+				onclick={() => run(onshare)}
+			>
 				<Icon name="link" class="size-4 text-ctp-overlay1" />
 				Copy share link
 			</button>
-			<button type="button" role="menuitem" class={item} onclick={() => run(onreset)}>
+			<button
+				type="button"
+				role="menuitem"
+				class={item}
+				onclick={() => run(onreset)}
+			>
 				<Icon name="reset" class="size-4 text-ctp-overlay1" />
 				Reset
 			</button>
-			<button type="button" role="menuitem" class={item} onclick={() => run(onclear)}>
+			<button
+				type="button"
+				role="menuitem"
+				class={item}
+				onclick={() => run(onclear)}
+			>
 				<Icon name="eraser" class="size-4 text-ctp-overlay1" />
 				Clear
 			</button>
-			<div role="separator" class="my-1 border-t border-ctp-surface0"></div>
+			<div
+				role="separator"
+				class="my-1 border-t border-ctp-surface0"
+			></div>
 			<button
 				type="button"
 				role="menuitemcheckbox"
@@ -104,7 +129,7 @@
 			>
 				<Icon name="play" class="size-4 text-ctp-overlay1" />
 				<span class="flex-1">Live output</span>
-				{#if live}<Icon name="check" class="size-4 text-ctp-mauve" />{/if}
+				{#if live}<Icon name="check" class="size-4 text-primary" />{/if}
 			</button>
 			<button
 				type="button"
@@ -115,7 +140,7 @@
 			>
 				<Icon name="wrap" class="size-4 text-ctp-overlay1" />
 				<span class="flex-1">Line wrap</span>
-				{#if wrap}<Icon name="check" class="size-4 text-ctp-mauve" />{/if}
+				{#if wrap}<Icon name="check" class="size-4 text-primary" />{/if}
 			</button>
 		</div>
 	{/if}

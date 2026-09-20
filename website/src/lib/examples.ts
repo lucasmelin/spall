@@ -110,7 +110,7 @@ export function describe() {
         books: [
           { Title: "Anathem", Author: "Neal Stephenson", Status: "Reading" },
           { Title: "Diaspora", Author: "Greg Egan", Status: "Finished" },
-          { Title: "The Three-body Problem", Author: "Cixin Liu", Status: "Finished" },
+          { Title: "Remarkably Bright Creatures", Author: "Shelby Van Pelt", Status: "Finished" },
         ],
       }),
       set: "",
