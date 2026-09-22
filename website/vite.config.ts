@@ -16,7 +16,7 @@ export default defineConfig({
       adapter: adapter(),
       paths: {
         base: process.env.NODE_ENV === "production" ? "/spall" : "",
-      }
+      },
     }),
   ],
   resolve: {

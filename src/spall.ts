@@ -539,15 +539,15 @@ export function applyEdits(source: string, edits: readonly Edit[]): string {
  * Render every Spall-managed block in a string and return structured,
  * document-relative diagnostics and edits.
  *
- *
  * Each block's template body is copied through unchanged, and only the
  * previously generated output is replaced. Running `renderDocument` again on
  * its own output produces the same result.
  *
- * @param source - The raw document bytes to render.
+ * @param source - The UTF-8 document text to render.
  * @param options - Rendering options.
- * @returns A new buffer with each block's generated output region replaced
- *   by fresh output from rendering its template.
+ * @returns The rendered document, per-block results, edits, errors, warnings,
+ *   and combined diagnostics. The result output is null when rendering fails
+ *   or if validation-only mode is enabled.
  */
 export async function renderDocument(
   source: string,

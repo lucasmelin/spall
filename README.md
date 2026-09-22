@@ -107,7 +107,7 @@ Template variables can be loaded from a JSON file:
 
 ```json
 {
-  "name": "Lucas",
+  "name": "Lucas"
 }
 ```
 

@@ -1,4 +1,4 @@
-import { Buffer, renderDocument } from "./spall";
+import { renderDocument } from "./spall";
 
 /** Everything on the landing page that shows Spall's input or output lives here. */
 

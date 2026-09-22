@@ -99,7 +99,7 @@
 			<CodeBlock label="notes.md" code={data.heroBefore} />
 			<CodeBlock
 				label="notes.md after spall render"
-				code={data.heroAfter}
+				code={data.heroAfter ?? ""}
 			/>
 		</div>
 
@@ -206,7 +206,7 @@
 					>
 						{style.note}
 					</p>
-					<CodeBlock label={files[style.id]} code={style.rendered} />
+					<CodeBlock label={files[style.id]} code={style.rendered ?? ""} />
 				</div>
 			{/each}
 		</div>
