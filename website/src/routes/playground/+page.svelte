@@ -3,12 +3,7 @@
 	import { resolve } from "$app/paths";
 	import { standardFilterMetadata, standardFilters } from "knap";
 	import type { Diagnostic } from "@codemirror/lint";
-	import {
-		analyze,
-		parseOverrides,
-		shiftThrough,
-		type Analysis,
-	} from "$lib/analyze";
+	import { analyze, parseOverrides, type Analysis } from "$lib/analyze";
 	import CommandPalette, {
 		type PaletteItem,
 	} from "$lib/components/CommandPalette.svelte";
@@ -61,7 +56,6 @@
 	let toast = $state("");
 
 	let analysis = $state.raw<Analysis | null>(null);
-	let docDiagnostics = $state.raw<Diagnostic[]>([]);
 
 	let dataEditor: ReturnType<typeof Editor> | undefined = $state();
 	let docEditor: ReturnType<typeof Editor> | undefined = $state();
@@ -103,21 +97,20 @@
 			// Anything typed since this started makes the result stale (and its positions wrong).
 			if (id !== run) return;
 
-			// Generated regions are rewritten in place. Problems live in templates, so their
-			// positions only need to move by the size of the edits before them.
+			// Generated regions are rewritten in place. The editor carries the diagnostics through
+			// those edits itself, so nothing here has to adjust positions.
 			const applying = autoApply && result.edits.length > 0;
-			const edits = applying ? result.edits : [];
-			docDiagnostics = result.problems.map((p) => ({
-				from: shiftThrough(edits, p.from),
-				to: shiftThrough(edits, p.to),
-				severity: p.severity,
-				message: p.message,
-				source: p.code,
-			}));
-			analysis = applying
-				? { ...result, changed: false, edits: [] }
-				: result;
-			if (applying) docEditor?.applyEdits(result.edits);
+			analysis = applying ? { ...result, edits: [] } : result;
+			docEditor?.update({
+				diagnostics: result.problems.map((p) => ({
+					from: p.from,
+					to: p.to,
+					severity: p.severity,
+					message: p.message,
+					source: p.code,
+				})),
+				edits: applying ? result.edits : [],
+			});
 		}, 90);
 
 		return () => clearTimeout(timer);
@@ -223,7 +216,7 @@
 				text: "No spall blocks yet. Use Add block to create one",
 			};
 		}
-		if (analysis.changed) {
+		if (analysis.edits.length > 0) {
 			return {
 				tone: "info",
 				text: "Output is out of date. Render to update it, since spall check exits 1",
@@ -235,9 +228,7 @@
 		};
 	});
 
-	const canRender = $derived(
-		analysis !== null && analysis.changed && analysis.edits.length > 0,
-	);
+	const canRender = $derived(analysis !== null && analysis.edits.length > 0);
 
 	const hasProblem = $derived({
 		data: !dataResult.ok || !overridesResult.ok,
@@ -300,7 +291,7 @@
 	/** One-off render, for when live output is off. Like running spall render on the file. */
 	function renderNow() {
 		if (!canRender || !analysis) return;
-		docEditor?.applyEdits(analysis.edits);
+		docEditor?.update({ edits: analysis.edits });
 		flash("Output updated");
 	}
 
@@ -521,7 +512,9 @@
 					aria-label="Knap documentation"
 					class="flex h-8 items-center rounded-md border border-ctp-surface1 pr-0.5 pl-2.5"
 				>
-					<span class="pr-1 text-xs font-medium">Knap docs</span>
+					<span class="pr-1 text-xs font-medium"
+						>Knap docs</span
+					>
 					<a
 						class="link"
 						href="{KNAP}/variables"
@@ -762,7 +755,6 @@
 						language="markdown"
 						{wrap}
 						regions
-						diagnostics={docDiagnostics}
 						placeholder="Write Markdown, then add a spall block"
 					/>
 				{/if}

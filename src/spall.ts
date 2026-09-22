@@ -1,4 +1,4 @@
-import { createEngine, standardFilters, type TemplateVariables } from "knap";
+import { createEngine, standardFilters } from "knap";
 
 /**
  * Marks the start of a managed block.
@@ -18,6 +18,26 @@ export const GENERATE_MARKER = "spall:generate]]]";
  * Marks the end of a managed block's generated output.
  */
 export const END_MARKER = "[[[spall:end]]]";
+
+/**
+ * A diagnostic reported by Spall or Knap, positioned in the source document.
+ */
+export type Diagnostic = {
+  severity: "error" | "warning";
+  message: string;
+  code?: string;
+  /** UTF-16 offset of the start of the diagnostic in the document. */
+  from: number;
+  /** UTF-16 offset of the end of the diagnostic in the document. */
+  to: number;
+  /** One-based document line. */
+  line: number;
+  /** One-based document column. */
+  column: number;
+};
+
+/** Replace `from`..`to` of the source with `insert`. Offsets are UTF-16. */
+export type Edit = { from: number; to: number; insert: string };
 
 /**
  * Represents a single Spall-managed block.
@@ -51,6 +71,9 @@ export type Block = {
   /** Byte offset immediately after the {@link END_MARKER} line. */
   readonly endLocation: number;
 
+  /** The common line prefix removed from the Knap template, if any. */
+  readonly prefix: string;
+
   /**
    * The Knap template source between the begin and generate marker lines,
    * decoded as UTF-8 and with a common marker-line prefix removed when
@@ -59,12 +82,57 @@ export type Block = {
   readonly template: string;
 };
 
+type Engine = ReturnType<typeof createEngine>;
+
 export type RenderOptions = {
   /** Template variables made available to Knap while rendering. */
-  readonly variables: TemplateVariables;
+  variables?: Record<string, unknown>;
+  engine?: Engine;
+  /** Check block structure and template syntax without rendering anything. */
+  validateOnly?: boolean;
 };
 
-const engine = createEngine({ filters: standardFilters });
+/** The engine used by Spall unless a caller supplies another engine. */
+export const defaultEngine = createEngine({ filters: standardFilters });
+
+/** The result of rendering one managed block. */
+export type RenderedBlock = {
+  /** UTF-16 offset of the existing generated output region. */
+  readonly start: number;
+  /** UTF-16 offset immediately after the existing generated output region. */
+  readonly end: number;
+  /** Fresh output produced by Knap. */
+  readonly output: string;
+  /** Whether replacing `start..end` with `output` would change the document. */
+  readonly changed: boolean;
+  readonly errors: Diagnostic[];
+  readonly warnings: Diagnostic[];
+};
+
+export type DocumentRenderResult = {
+  /** The rendered document, or null when either it can't be produced, there were errors, or `validateOnly`. */
+  output: string | null;
+  /** Successfully parsed blocks and their individual render results. */
+  blocks: RenderedBlock[];
+  /** The changes that turn the source into `output`. Empty whenever `output` is null. */
+  edits: Edit[];
+  /** Sorted by position. */
+  errors: Diagnostic[];
+  warnings: Diagnostic[];
+  /** `errors` and `warnings` together, sorted by position. */
+  diagnostics: Diagnostic[];
+};
+
+/** A structured rendering failure used by the Buffer API. */
+export class SpallError extends Error {
+  readonly diagnostics: Diagnostic[];
+
+  constructor(diagnostics: readonly Diagnostic[]) {
+    super(diagnostics.map(formatDiagnostic).join("\n"));
+    this.name = "SpallError";
+    this.diagnostics = [...diagnostics];
+  }
+}
 
 const UTF8 = "utf8";
 
@@ -203,7 +271,6 @@ export function findBlocks(source: Buffer): Block[] {
   let templateStart = -1;
   let templateEnd = -1;
   let outputStart = -1;
-
   let templatePrefix = "";
 
   while (cursor < source.length) {
@@ -286,6 +353,7 @@ export function findBlocks(source: Buffer): Block[] {
             outputStart,
             outputEnd: lineStart,
             endLocation,
+            prefix: templatePrefix,
             template,
           });
 
@@ -305,24 +373,175 @@ export function findBlocks(source: Buffer): Block[] {
 
   if (state === "template") {
     throw new Error(
-      `Found ${BEGIN_MARKER} at byte ${beginLocation}, but no matching ${GENERATE_MARKER}.`,
+      `Found ${BEGIN_MARKER} on line ${byteLine(source, beginLocation)}, but no matching ${GENERATE_MARKER}.`,
     );
   }
 
   if (state === "output") {
     throw new Error(
-      `Found ${BEGIN_MARKER} at byte ${beginLocation}, but no matching ${END_MARKER}.`,
+      `Found ${BEGIN_MARKER} on line ${byteLine(source, beginLocation)}, but no matching ${END_MARKER}.`,
     );
   }
 
   return blocks;
 }
 
+/** Return the 1-based line number containing `byteOffset` in `source`. */
+function byteLine(source: Buffer, byteOffset: number): number {
+  let line = 1;
+
+  for (let i = 0; i < byteOffset; i++) {
+    if (source[i] === LF_BYTE) line++;
+  }
+
+  return line;
+}
+
+function utf16Offset(source: Buffer, byteOffset: number): number {
+  return source.subarray(0, byteOffset).toString(UTF8).length;
+}
+
+function lineAndColumn(doc: string, offset: number): { line: number; column: number } {
+  let line = 1;
+  let lastNewline = -1;
+
+  for (let i = 0; i < offset; i++) {
+    if (doc.charCodeAt(i) === 10) {
+      line++;
+      lastNewline = i;
+    }
+  }
+
+  return {
+    line,
+    column: offset - lastNewline,
+  };
+}
+
+function tokenEnd(doc: string, from: number): number {
+  const rest = doc.slice(from, from + 64);
+  const match = /^(?:\{\{-?|\{%-?|-?%\}|-?\}\}|"[^"\n]*"?|[A-Za-z_$][\w$.-]*|\d[\d.]*|\S)/.exec(
+    rest,
+  );
+  return from + Math.max(1, match ? match[0].length : 1);
+}
+
+export function formatDiagnostic(diagnostic: Diagnostic): string {
+  const code = diagnostic.code ? `${diagnostic.code}: ` : "";
+  return `${code}${diagnostic.message} (${diagnostic.line}:${diagnostic.column})`;
+}
+
+/** Return the UTF-16 offset of the start of `line` (1-based). */
+function lineStartOffset(doc: string, line: number): number {
+  let offset = 0;
+
+  for (let i = 1; i < line; i++) {
+    const next = doc.indexOf("\n", offset);
+    if (next === -1) return doc.length;
+    offset = next + 1;
+  }
+
+  return offset;
+}
+
+function parserDiagnostic(doc: string, raw: unknown): Diagnostic {
+  const message = raw instanceof Error ? raw.message : String(raw);
+  const match = /on line (\d+)/.exec(message);
+  const line = match ? Number(match[1]) : 1;
+  const from = lineStartOffset(doc, line);
+
+  return {
+    severity: "error",
+    message,
+    from,
+    to: Math.min(doc.length, Math.max(from + 1, from + BEGIN_MARKER.length)),
+    line,
+    column: 1,
+  };
+}
+
+type Located = { message: string; code?: string; line: number; column: number };
+
 /**
- * Render every Spall-managed block in `source` using the Knap template engine.
+ * Maps a diagnostic reported against a rendered template back to its
+ * corresponding location in the original source document.
+ *
+ * The template may have a prefix (for example, a Markdown comment marker)
+ * that was stripped before rendering. When the raw and rendered templates
+ * have the same line structure, that prefix length is accounted for when
+ * translating the diagnostic column back to the source.
+ *
+ * @param doc The complete original source document.
+ * @param rawTemplate The template as it appeared in the source, including
+ *   any line prefixes that were stripped before rendering.
+ * @param templateStart The UTF-16 offset where `rawTemplate` begins in
+ *   `source`.
+ * @param template The template passed to the template engine after any
+ *   prefixes were stripped.
+ * @param item The diagnostic location reported by the template engine.
+ * @param severity The severity to assign to the resulting diagnostic.
+ * @returns A diagnostic positioned relative to the original source document.
+ */
+function locateDiagnostic(
+  doc: string,
+  rawTemplate: string,
+  templateStart: number,
+  template: string,
+  item: Located,
+  severity: Diagnostic["severity"],
+): Diagnostic {
+  const rawLines = rawTemplate.split("\n");
+  const lines = template.split("\n");
+  // Template-engine line numbers are one-based. Clamp malformed locations so
+  // that they cannot produce an out-of-bounds source offset.
+  const lineIndex = Math.max(0, Math.min(rawLines.length - 1, item.line - 1));
+
+  // Convert the diagnostic's line number into an offset within the raw template.
+  const offset = rawLines.slice(0, lineIndex).reduce((sum, l) => sum + l.length + 1, 0);
+
+  const rawLine = rawLines[lineIndex];
+  const line = lines[lineIndex];
+  const stripped =
+    rawLine !== undefined && line !== undefined && rawLines.length === lines.length
+      ? rawLine.length - line.length
+      : 0;
+
+  const from = Math.min(
+    doc.length,
+    templateStart + offset + stripped + Math.max(0, item.column - 1),
+  );
+  const to = Math.min(doc.length, tokenEnd(doc, from));
+  const position = lineAndColumn(doc, from);
+
+  return {
+    severity,
+    message: item.message,
+    code: item.code,
+    from,
+    to: Math.max(to, Math.min(doc.length, from + 1)),
+    line: position.line,
+    column: position.column,
+  };
+}
+
+const byPosition = (a: Diagnostic, b: Diagnostic) => a.from - b.from || a.to - b.to;
+
+/** Apply edits to `source`. They must not overlap; the order they're given in doesn't matter. */
+export function applyEdits(source: string, edits: readonly Edit[]): string {
+  let result = source;
+  for (const edit of [...edits].sort((a, b) => b.from - a.from)) {
+    result = result.slice(0, edit.from) + edit.insert + result.slice(edit.to);
+  }
+  return result;
+}
+
+/**
+ * Render every Spall-managed block in a string and return structured,
+ * document-relative diagnostics and edits.
+ *
  *
  * Each block's template body is copied through unchanged, and only the
- * previously generated output is replaced. Running `renderBlocks` again on
+ * previously generated output is replaced. Running `renderDocument` again on
  * its own output produces the same result.
  *
  * @param source - The raw document bytes to render.
@@ -330,39 +549,80 @@ export function findBlocks(source: Buffer): Block[] {
  * @returns A new buffer with each block's generated output region replaced
  *   by fresh output from rendering its template.
  */
-export async function renderBlocks(source: Buffer, options: RenderOptions): Promise<Buffer> {
-  const blocks = findBlocks(source);
-  const pieces: Buffer[] = [];
+export async function renderDocument(
+  source: string,
+  options: RenderOptions = {},
+): Promise<DocumentRenderResult> {
+  const sourceBuffer = Buffer.from(source, UTF8);
+  let blocks: Block[];
 
-  let cursor = 0;
-
-  for (const block of blocks) {
-    // Copy everything up to and including the GENERATE_MARKER line.
-    // The template and marker lines are never modified.
-    pieces.push(source.subarray(cursor, block.outputStart));
-
-    const result = await engine.render(block.template, {
-      variables: options.variables,
-    });
-
-    if (result.errors.length > 0) {
-      const diagnostics = result.errors
-        .map((error) => `${error.code}: ${error.message} (${error.line}:${error.column})`)
-        .join("\n");
-
-      throw new Error(diagnostics);
-    }
-
-    pieces.push(Buffer.from(result.output, UTF8));
-
-    // Skip the stale generated output. The END_MARKER line itself is
-    // preserved by the next push (or the final flush below).
-    cursor = block.outputEnd;
+  try {
+    blocks = findBlocks(sourceBuffer);
+  } catch (error) {
+    const errors = [parserDiagnostic(source, error)];
+    return { output: null, blocks: [], edits: [], errors, warnings: [], diagnostics: errors };
   }
 
-  pieces.push(source.subarray(cursor));
+  const engine = options.engine ?? defaultEngine;
+  const renderedBlocks: RenderedBlock[] = [];
 
-  return Buffer.concat(pieces);
+  for (const block of blocks) {
+    const templateStart = utf16Offset(sourceBuffer, block.templateStart);
+    const templateEnd = utf16Offset(sourceBuffer, block.templateEnd);
+    const rawTemplate = source.slice(templateStart, templateEnd);
+    const start = utf16Offset(sourceBuffer, block.outputStart);
+    const end = utf16Offset(sourceBuffer, block.outputEnd);
+
+    const current = source.slice(start, end);
+    const locate = (item: Located, severity: Diagnostic["severity"]) =>
+      locateDiagnostic(source, rawTemplate, templateStart, block.template, item, severity);
+
+    if (options.validateOnly) {
+      renderedBlocks.push({
+        start,
+        end,
+        output: current,
+        changed: false,
+        errors: engine.validate(block.template).map((item) => locate(item, "error")),
+        warnings: [],
+      });
+      continue;
+    }
+
+    const result = await engine.render(block.template, { variables: options.variables ?? {} });
+    const errors = result.errors.map((item) => locate(item, "error"));
+    const warnings = result.warnings.map((item) => locate(item, "warning"));
+
+    renderedBlocks.push({
+      start,
+      end,
+      output: result.output,
+      changed: errors.length === 0 && result.output !== current,
+      errors,
+      warnings,
+    });
+  }
+
+  const errors = renderedBlocks.flatMap((block) => block.errors).sort(byPosition);
+  const warnings = renderedBlocks.flatMap((block) => block.warnings).sort(byPosition);
+  const diagnostics = [...errors, ...warnings].sort(byPosition);
+
+  if (errors.length > 0 || options.validateOnly) {
+    return { output: null, blocks: renderedBlocks, edits: [], errors, warnings, diagnostics };
+  }
+
+  const edits = renderedBlocks
+    .filter((block) => block.changed)
+    .map((block) => ({ from: block.start, to: block.end, insert: block.output }));
+
+  return {
+    output: applyEdits(source, edits),
+    blocks: renderedBlocks,
+    edits,
+    errors,
+    warnings,
+    diagnostics,
+  };
 }
 
 /**

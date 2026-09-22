@@ -1,5 +1,5 @@
 import { writeFile, readFile } from "fs/promises";
-import { renderBlocks } from "./spall.js";
+import { formatDiagnostic, renderDocument } from "./spall.js";
 import { loadVariables } from "./variables.js";
 import type { Command } from "./command.js";
 
@@ -131,15 +131,30 @@ export async function runRender(argv: readonly string[]): Promise<number> {
 
   const source = await readFile(args.templateFile);
   const variables = await loadVariables(args.dataFile, args.sets);
-  const rendered = await renderBlocks(source, { variables });
+
+  const sourceText = source.toString("utf8");
+  const result = await renderDocument(sourceText, { variables });
+
+  if (result.errors.length > 0) {
+    for (const diagnostic of result.errors) {
+      process.stderr.write(`${args.templateFile}: ${formatDiagnostic(diagnostic)}\n`);
+    }
+    return 1;
+  }
+
+  // output is always null when there are errors, so this is unreachable in practice.
+  // This check just satisfies the type checker.
+  if (result.output === null) {
+    throw new Error("renderDocument returned no output despite reporting no errors");
+  }
 
   if (args.dryRun) {
-    process.stdout.write(rendered);
+    process.stdout.write(result.output);
     return 0;
   }
 
-  if (!source.equals(rendered)) {
-    await writeFile(args.templateFile, rendered);
+  if (result.output !== sourceText) {
+    await writeFile(args.templateFile, result.output);
   }
 
   return 0;

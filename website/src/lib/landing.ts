@@ -1,4 +1,4 @@
-import { Buffer, renderBlocks } from "./spall";
+import { Buffer, renderDocument } from "./spall";
 
 /** Everything on the landing page that shows Spall's input or output lives here. */
 
@@ -62,8 +62,8 @@ spall:generate]]]%%
 ];
 
 async function run(source: string, variables: Record<string, unknown>) {
-  const output = await renderBlocks(Buffer.from(source, "utf8"), { variables });
-  return output.toString("utf8");
+  const result = await renderDocument(source, { variables });
+  return result.output;
 }
 
 /** Runs the real spall over every sample. Called while the site is being built. */

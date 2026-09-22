@@ -64,12 +64,12 @@
 
 	$effect(() => {
 		// A new query starts at the best match.
-		query;
+		void query;
 		active = 0;
 	});
 
 	$effect(() => {
-		active;
+		void active;
 		list?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
 	});
 

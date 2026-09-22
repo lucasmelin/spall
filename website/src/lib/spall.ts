@@ -11,8 +11,8 @@ export {
   GENERATE_MARKER,
   END_MARKER,
   findBlocks,
-  renderBlocks,
   parseSetValues,
+  renderDocument,
 } from "@lucasmelin/spall";
-export type { Block } from "@lucasmelin/spall";
+export type { Block, Diagnostic, RenderedBlock, Edit } from "@lucasmelin/spall";
 export { Buffer };

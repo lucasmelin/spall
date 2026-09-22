@@ -47,6 +47,8 @@
 		placeholder?: string;
 	} = $props();
 
+	type Edit = { from: number; to: number; insert: string };
+
 	let host: HTMLDivElement | undefined = $state();
 	let view: EditorView | undefined = $state.raw();
 	const wrapping = new Compartment();
@@ -65,12 +67,19 @@
 	}
 
 	/**
-	 * Apply generated changes. They stay out of undo history (undo should undo *your* typing, and the
-	 * generated regions are rewritten anyway) and still flow back out through `value`.
+	 * Update a document that's being generated for you: set the diagnostics, then apply the edits.
+	 *
+	 * The order matters. Diagnostics are set against the document they were computed for, and
+	 * CodeMirror then carries them through the edits, so they land in the right place with no
+	 * offset arithmetic here. Edits stay out of undo history (undo should undo *your* typing, and
+	 * the generated regions are rewritten anyway) and still flow back out through `value`.
 	 */
-	export function applyEdits(edits: { from: number; to: number; insert: string }[]) {
-		if (!view || edits.length === 0) return;
-		view.dispatch({ changes: edits, annotations: Transaction.addToHistory.of(false) });
+	export function update({ diagnostics: next, edits }: { diagnostics?: Diagnostic[]; edits?: Edit[] }) {
+		if (!view) return;
+		if (next) view.dispatch(setDiagnostics(view.state, clampAll(next)));
+		if (edits && edits.length > 0) {
+			view.dispatch({ changes: edits, annotations: Transaction.addToHistory.of(false) });
+		}
 	}
 
 	export function reveal(position: number) {
@@ -131,17 +140,18 @@
 		view?.dispatch({ effects: wrapping.reconfigure(wrap ? EditorView.lineWrapping : []) });
 	});
 
+	/** Keep diagnostics inside the document, so a stale one can never throw. */
+	function clampAll(list: Diagnostic[]): Diagnostic[] {
+		const size = view?.state.doc.length ?? 0;
+		const clamp = (n: number) => Math.max(0, Math.min(size, n));
+		return list.map((d) => ({ ...d, from: clamp(d.from), to: clamp(Math.max(d.to, d.from)) }));
+	}
+
+	// For editors whose diagnostics come from props (the JSON editor).
 	$effect(() => {
 		const list = diagnostics;
 		if (!view) return;
-		const size = view.state.doc.length;
-		const clamp = (n: number) => Math.max(0, Math.min(size, n));
-		view.dispatch(
-			setDiagnostics(
-				view.state,
-				list.map((d) => ({ ...d, from: clamp(d.from), to: clamp(Math.max(d.to, d.from)) }))
-			)
-		);
+		view.dispatch(setDiagnostics(view.state, clampAll(list)));
 	});
 </script>
 

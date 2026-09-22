@@ -1,5 +1,5 @@
 import { readFile } from "fs/promises";
-import { renderBlocks } from "./spall.js";
+import { renderDocument, formatDiagnostic } from "./spall.js";
 import { loadVariables } from "./variables.js";
 import type { Command } from "./command.js";
 
@@ -111,10 +111,19 @@ export async function runCheck(argv: readonly string[]): Promise<number> {
 
   const source = await readFile(args.templateFile);
   const variables = await loadVariables(args.dataFile, args.sets);
-  const rendered = await renderBlocks(source, { variables });
 
-  if (!source.equals(rendered)) {
-    process.stderr.write(`${args.templateFile}: generated content is out of date\n`);
+  const sourceText = source.toString("utf8");
+  const result = await renderDocument(sourceText, { variables });
+
+  if (result.errors.length > 0) {
+    for (const diagnostic of result.errors) {
+      process.stderr.write(`${args.templateFile}: ${formatDiagnostic(diagnostic)}\n`);
+    }
+    return 1;
+  }
+
+  if (result.output !== sourceText) {
+    process.stderr.write(`${args.templateFile}: generated content is out-of-date\n`);
     return 1;
   }
 
