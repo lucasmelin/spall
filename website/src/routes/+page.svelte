@@ -215,7 +215,7 @@
 	<section class="{section} mt-24" aria-labelledby="explore-title">
 		<h2 id="explore-title" class={h2}>Explore</h2>
 		<div class="mt-8 grid gap-4 md:grid-cols-3">
-			{#each [{ title: "Playground", text: "Edit data and a document, and watch Spall rewrite the output as you type.", href: resolve("/playground"), external: false }, { title: "README", text: "Install, usage and the full command reference.", href: `${REPO}#readme`, external: true }, { title: "Knap templates", text: "Variables, filters and logic: the language your templates are written in.", href: KNAP, external: true }] as card (card.title)}
+			{#each [{ title: "Playground", text: "Edit data and a document, and watch Spall rewrite the output as you type.", href: resolve("/playground"), external: false }, { title: "Knap templates", text: "Variables, filters and logic: the language your templates are written in.", href: KNAP, external: true }, { title: "Project README", text: "Install, usage and the full command reference.", href: `${REPO}#readme`, external: true }] as card (card.title)}
 				<a
 					href={card.href}
 					target={card.external ? "_blank" : undefined}

@@ -6,41 +6,124 @@ Spall is inspired by [Cog](https://github.com/nedbat/cog), but uses Knap's Markd
 
 ## Install
 
+Install Spall globally with `npm`:
+
 ```bash
 npm install -g @lucasmelin/spall
 ```
 
+Or run it without installing globally:
+
+```bash
+npx @lucasmelin/spall <command>
+```
+
 ## Usage
+
+### Render a file
 
 Render a Markdown file containing a template:
 
 ```bash
-npx @lucasmelin/spall render file.md --data data.json
+spall render file.md --set name=Lucas
 ```
 
-All lines between `[[[spall:begin` and `spall:generate]]]` are part of the `knap` template.
-The lines between `spall:generate]]]` and `[[[spall:end]]]` are the _output_ from the `knap` template.
+Spall updates the file in-place. If rendering produces the exact same content as what's already in on disk the file is left unchanged.
 
-For example, if you run this file through `spall`:
+### Check a file
+
+```bash
+spall check file.md --set name=Lucas
+```
+
+`check` exits successfully if rendering would produce the content already on disk.
+It exits with a non-zero exit code if the file is out-of-date or if rendering produces an error.
+This command is especially useful for CI and other automated checks.
+
+### Preview changes
+
+Use `--dry-run` with `render` to render the file without modifying it:
+
+```bash
+spall render file.md --set name=Lucas --dry-run
+```
+
+The rendered document is written to standard output.
+
+### Managed blocks
+
+Spall manages the portion of a Markdown document between its begin and end markers:
 
 ```md
+[[[spall:begin
+
+... Knap template ...
+
+spall:generate]]]
+
+... generated output ...
+
+[[[spall:end]]]
+```
+
+The template is preserved between runs, while the generated output is replaced with the result of rendering the template.
+
+Everything outside managed blocks, either before or after, is preserved verbatim.
+
+For example:
+
+```md
+Before
 <!--[[[spall:begin
 Hello from {{ name }}!
 spall:generate]]]-->
 <!--[[[spall:end]]]-->
+After
 ```
 
-with `npx @lucasmelin/spall render file.md --set name=Lucas`, it outputs:
+With:
+
+```bash
+spall render file.md --set name=Lucas
+```
+
+the block becomes:
 
 ```md
+Before
 <!--[[[spall:begin
 Hello from {{ name }}!
 spall:generate]]]-->
 Hello from Lucas!
 <!--[[[spall:end]]]-->
+After
 ```
 
 Line comments and [Obsidian comments](https://obsidian.md/help/syntax#Comments) (`%%`) are supported as well.
+
+### Template variables
+
+Template variables can be loaded from a JSON file:
+
+```json
+{
+  "name": "Lucas",
+}
+```
+
+and used in the `render` and `check` commands, for example:
+
+```bash
+spall render file.md --data data.json
+```
+
+Individual top-level variables can also be supplied with `--set`:
+
+```bash
+spall render file.md --set name=Lucas
+```
+
+`--set` may be specified multiple times. When a variable is supplied by both `--data` and `--set`, the `--set` value takes precedence.
 
 ## Development
 

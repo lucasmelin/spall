@@ -512,9 +512,7 @@
 					aria-label="Knap documentation"
 					class="flex h-8 items-center rounded-md border border-ctp-surface1 pr-0.5 pl-2.5"
 				>
-					<span class="pr-1 text-xs font-medium"
-						>Knap docs</span
-					>
+					<span class="pr-1 text-xs font-medium">Knap docs</span>
 					<a
 						class="link"
 						href="{KNAP}/variables"
